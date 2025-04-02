@@ -223,26 +223,36 @@ def appointment_slot_list(request):
 
     return render(request, "appointment_slot_list.html", {"slot_list":slot})
 
-@login_required
+
 def doctor_list(request):
-    doctors = Doctor.objects.all()
-    specializations = Specialization.objects.all()
+    if request.user.is_authenticated:
+        doctors = Doctor.objects.all()
+        specializations = Specialization.objects.all()
 
 
-    return render(request, "doctor_list.html", {"doctors":doctors, "specializations":specializations})
+        return render(request, "doctor_list.html", {"doctors":doctors, "specializations":specializations})
+    
+    else:
+        messages.error(request, "you have must be logged in")
+        return redirect("login")
 
-@login_required
+
 def search_doctor(request):
-    if request.method == "POST":
-        searched = request.POST.get("searched")
-        
-        doctors = Doctor.objects.filter(Q(user__first_name__icontains=searched) | Q(user__last_name__icontains=searched) | Q(specialization__name__icontains=searched) | Q(specialization__description__icontains=searched)).distinct()
-        if doctors:
-            return render(request, "search_doctor.html", {"doctors":doctors})
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            searched = request.POST.get("searched")
+            
+            doctors = Doctor.objects.filter(Q(user__first_name__icontains=searched) | Q(user__last_name__icontains=searched) | Q(specialization__name__icontains=searched) | Q(specialization__description__icontains=searched)).distinct()
+            if doctors:
+                return render(request, "search_doctor.html", {"doctors":doctors})
+            else:
+                return render(request, "search_doctor.html", {})
         else:
             return render(request, "search_doctor.html", {})
+        
     else:
-        return render(request, "search_doctor.html", {})
+        messages.error(request, "you have must be logged in")
+        return redirect("login")
 
 
 """ @login_required
